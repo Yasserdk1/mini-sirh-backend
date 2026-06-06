@@ -3,6 +3,7 @@ package com.example.mini_sirh.service;
 import com.example.mini_sirh.dto.CollaborateurRequest;
 import com.example.mini_sirh.entity.Collaborateur;
 import com.example.mini_sirh.entity.Departement;
+import com.example.mini_sirh.exception.ResourceNotFoundException;
 import com.example.mini_sirh.repository.CollaborateurRepository;
 import com.example.mini_sirh.repository.DepartementRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +19,8 @@ public class CollaborateurService {
     private final DepartementRepository departementRepository;
 
     public Collaborateur create(CollaborateurRequest request) {
-
         Departement departement = departementRepository.findById(request.getDepartementId())
-                .orElseThrow(() -> new RuntimeException("Département introuvable"));
+                .orElseThrow(() -> new ResourceNotFoundException("Département introuvable avec l'id : " + request.getDepartementId()));
 
         Collaborateur collaborateur = Collaborateur.builder()
                 .nom(request.getNom())
@@ -44,15 +44,14 @@ public class CollaborateurService {
 
     public Collaborateur findById(Long id) {
         return collaborateurRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Collaborateur introuvable"));
+                .orElseThrow(() -> new ResourceNotFoundException("Collaborateur introuvable avec l'id : " + id));
     }
 
     public Collaborateur update(Long id, CollaborateurRequest request) {
-
         Collaborateur collaborateur = findById(id);
 
         Departement departement = departementRepository.findById(request.getDepartementId())
-                .orElseThrow(() -> new RuntimeException("Département introuvable"));
+                .orElseThrow(() -> new ResourceNotFoundException("Département introuvable avec l'id : " + request.getDepartementId()));
 
         collaborateur.setNom(request.getNom());
         collaborateur.setPrenom(request.getPrenom());

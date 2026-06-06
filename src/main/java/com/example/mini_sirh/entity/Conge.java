@@ -1,6 +1,7 @@
 package com.example.mini_sirh.entity;
 
 import com.example.mini_sirh.entity.enums.StatutConge;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,6 +21,7 @@ public class Conge {
     private Long id;
 
     private LocalDate dateDebut;
+
     private LocalDate dateFin;
 
     @Column(columnDefinition = "TEXT")
@@ -29,6 +31,7 @@ public class Conge {
     private StatutConge statut;
 
     @ManyToOne
-    @JoinColumn(name = "collaborateur_id")
+    @JoinColumn(name = "collaborateur_id", nullable = false)
+    @JsonIgnoreProperties({"pointages", "conges", "formations"})
     private Collaborateur collaborateur;
 }

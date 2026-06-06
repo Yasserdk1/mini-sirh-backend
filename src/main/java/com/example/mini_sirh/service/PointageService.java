@@ -4,6 +4,8 @@ import com.example.mini_sirh.dto.PointageRequest;
 import com.example.mini_sirh.entity.Collaborateur;
 import com.example.mini_sirh.entity.Pointage;
 import com.example.mini_sirh.entity.enums.StatutPointage;
+import com.example.mini_sirh.exception.DuplicatePointageException;
+import com.example.mini_sirh.exception.ResourceNotFoundException;
 import com.example.mini_sirh.repository.CollaborateurRepository;
 import com.example.mini_sirh.repository.PointageRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +25,8 @@ public class PointageService {
     private static final LocalTime HEURE_LIMITE = LocalTime.of(9, 0);
 
     public Pointage enregistrerPointage(PointageRequest request) {
-
         Collaborateur collaborateur = collaborateurRepository.findByRfidCode(request.getRfidCode())
-                .orElseThrow(() -> new RuntimeException("Aucun collaborateur trouvé avec ce code RFID"));
+                .orElseThrow(() -> new ResourceNotFoundException("Aucun collaborateur trouvé avec le code RFID : " + request.getRfidCode()));
 
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
@@ -56,7 +57,7 @@ public class PointageService {
             return pointageRepository.save(pointage);
         }
 
-        throw new RuntimeException("Pointage déjà complet pour aujourd'hui");
+        throw new DuplicatePointageException("Pointage déjà complet pour aujourd'hui");
     }
 
     public List<Pointage> getPointagesDuJour() {

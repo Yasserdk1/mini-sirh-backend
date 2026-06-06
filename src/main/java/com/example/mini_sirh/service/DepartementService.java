@@ -2,6 +2,7 @@ package com.example.mini_sirh.service;
 
 import com.example.mini_sirh.dto.DepartementRequest;
 import com.example.mini_sirh.entity.Departement;
+import com.example.mini_sirh.exception.ResourceNotFoundException;
 import com.example.mini_sirh.repository.DepartementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,7 @@ public class DepartementService {
 
     public Departement findById(Long id) {
         return departementRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Département introuvable"));
+                .orElseThrow(() -> new ResourceNotFoundException("Département introuvable avec l'id : " + id));
     }
 
     public Departement update(Long id, DepartementRequest request) {
