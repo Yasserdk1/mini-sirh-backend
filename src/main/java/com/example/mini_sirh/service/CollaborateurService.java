@@ -1,6 +1,7 @@
 package com.example.mini_sirh.service;
 
 import com.example.mini_sirh.dto.CollaborateurRequest;
+import com.example.mini_sirh.dto.CollaborateurResponse;
 import com.example.mini_sirh.entity.Collaborateur;
 import com.example.mini_sirh.entity.Departement;
 import com.example.mini_sirh.exception.ResourceNotFoundException;
@@ -18,7 +19,7 @@ public class CollaborateurService {
     private final CollaborateurRepository collaborateurRepository;
     private final DepartementRepository departementRepository;
 
-    public Collaborateur create(CollaborateurRequest request) {
+    public CollaborateurResponse create(CollaborateurRequest request) {
         Departement departement = departementRepository.findById(request.getDepartementId())
                 .orElseThrow(() -> new ResourceNotFoundException("Département introuvable avec l'id : " + request.getDepartementId()));
 
@@ -35,20 +36,22 @@ public class CollaborateurService {
                 .departement(departement)
                 .build();
 
-        return collaborateurRepository.save(collaborateur);
+        return mapToResponse(collaborateurRepository.save(collaborateur));
     }
 
-    public List<Collaborateur> findAll() {
-        return collaborateurRepository.findAll();
+    public List<CollaborateurResponse> findAll() {
+        return collaborateurRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
-    public Collaborateur findById(Long id) {
-        return collaborateurRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Collaborateur introuvable avec l'id : " + id));
+    public CollaborateurResponse findById(Long id) {
+        return mapToResponse(getEntityById(id));
     }
 
-    public Collaborateur update(Long id, CollaborateurRequest request) {
-        Collaborateur collaborateur = findById(id);
+    public CollaborateurResponse update(Long id, CollaborateurRequest request) {
+        Collaborateur collaborateur = getEntityById(id);
 
         Departement departement = departementRepository.findById(request.getDepartementId())
                 .orElseThrow(() -> new ResourceNotFoundException("Département introuvable avec l'id : " + request.getDepartementId()));
@@ -64,11 +67,33 @@ public class CollaborateurService {
         collaborateur.setStatut(request.getStatut());
         collaborateur.setDepartement(departement);
 
-        return collaborateurRepository.save(collaborateur);
+        return mapToResponse(collaborateurRepository.save(collaborateur));
     }
 
     public void delete(Long id) {
-        Collaborateur collaborateur = findById(id);
+        Collaborateur collaborateur = getEntityById(id);
         collaborateurRepository.delete(collaborateur);
+    }
+
+    public Collaborateur getEntityById(Long id) {
+        return collaborateurRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Collaborateur introuvable avec l'id : " + id));
+    }
+
+    private CollaborateurResponse mapToResponse(Collaborateur collaborateur) {
+        return CollaborateurResponse.builder()
+                .id(collaborateur.getId())
+                .nom(collaborateur.getNom())
+                .prenom(collaborateur.getPrenom())
+                .email(collaborateur.getEmail())
+                .telephone(collaborateur.getTelephone())
+                .cin(collaborateur.getCin())
+                .poste(collaborateur.getPoste())
+                .dateEmbauche(collaborateur.getDateEmbauche())
+                .rfidCode(collaborateur.getRfidCode())
+                .statut(collaborateur.getStatut())
+                .departementId(collaborateur.getDepartement() != null ? collaborateur.getDepartement().getId() : null)
+                .departementNom(collaborateur.getDepartement() != null ? collaborateur.getDepartement().getNom() : null)
+                .build();
     }
 }

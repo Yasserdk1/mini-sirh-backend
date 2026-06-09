@@ -1,6 +1,7 @@
 package com.example.mini_sirh.service;
 
 import com.example.mini_sirh.dto.PointageRequest;
+import com.example.mini_sirh.dto.PointageResponse;
 import com.example.mini_sirh.entity.Collaborateur;
 import com.example.mini_sirh.entity.Pointage;
 import com.example.mini_sirh.entity.enums.StatutPointage;
@@ -24,7 +25,7 @@ public class PointageService {
 
     private static final LocalTime HEURE_LIMITE = LocalTime.of(9, 0);
 
-    public Pointage enregistrerPointage(PointageRequest request) {
+    public PointageResponse enregistrerPointage(PointageRequest request) {
         Collaborateur collaborateur = collaborateurRepository.findByRfidCode(request.getRfidCode())
                 .orElseThrow(() -> new ResourceNotFoundException("Aucun collaborateur trouvé avec le code RFID : " + request.getRfidCode()));
 
@@ -48,23 +49,45 @@ public class PointageService {
                     .deviceId(request.getDeviceId())
                     .build();
 
-            return pointageRepository.save(newPointage);
+            return mapToResponse(pointageRepository.save(newPointage));
         }
 
         if (pointage.getHeureSortie() == null) {
             pointage.setHeureSortie(now);
             pointage.setStatut(StatutPointage.SORTI);
-            return pointageRepository.save(pointage);
+            return mapToResponse(pointageRepository.save(pointage));
         }
 
         throw new DuplicatePointageException("Pointage déjà complet pour aujourd'hui");
     }
 
-    public List<Pointage> getPointagesDuJour() {
-        return pointageRepository.findByDatePointage(LocalDate.now());
+    public List<PointageResponse> getPointagesDuJour() {
+        return pointageRepository.findByDatePointage(LocalDate.now())
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
-    public List<Pointage> findAll() {
-        return pointageRepository.findAll();
+    public List<PointageResponse> findAll() {
+        return pointageRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    private PointageResponse mapToResponse(Pointage pointage) {
+        Collaborateur collaborateur = pointage.getCollaborateur();
+
+        return PointageResponse.builder()
+                .id(pointage.getId())
+                .datePointage(pointage.getDatePointage())
+                .heureEntree(pointage.getHeureEntree())
+                .heureSortie(pointage.getHeureSortie())
+                .statut(pointage.getStatut())
+                .deviceId(pointage.getDeviceId())
+                .collaborateurId(collaborateur.getId())
+                .collaborateurNomComplet(collaborateur.getNom() + " " + collaborateur.getPrenom())
+                .rfidCode(collaborateur.getRfidCode())
+                .build();
     }
 }

@@ -1,6 +1,7 @@
 package com.example.mini_sirh.service;
 
 import com.example.mini_sirh.dto.FormationRequest;
+import com.example.mini_sirh.dto.FormationResponse;
 import com.example.mini_sirh.entity.Collaborateur;
 import com.example.mini_sirh.entity.Formation;
 import com.example.mini_sirh.exception.ResourceNotFoundException;
@@ -18,7 +19,7 @@ public class FormationService {
     private final FormationRepository formationRepository;
     private final CollaborateurRepository collaborateurRepository;
 
-    public Formation create(FormationRequest request) {
+    public FormationResponse create(FormationRequest request) {
         Formation formation = Formation.builder()
                 .titre(request.getTitre())
                 .description(request.getDescription())
@@ -28,20 +29,22 @@ public class FormationService {
                 .statut(request.getStatut())
                 .build();
 
-        return formationRepository.save(formation);
+        return mapToResponse(formationRepository.save(formation));
     }
 
-    public List<Formation> findAll() {
-        return formationRepository.findAll();
+    public List<FormationResponse> findAll() {
+        return formationRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
-    public Formation findById(Long id) {
-        return formationRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Formation introuvable avec l'id : " + id));
+    public FormationResponse findById(Long id) {
+        return mapToResponse(getEntityById(id));
     }
 
-    public Formation update(Long id, FormationRequest request) {
-        Formation formation = findById(id);
+    public FormationResponse update(Long id, FormationRequest request) {
+        Formation formation = getEntityById(id);
 
         formation.setTitre(request.getTitre());
         formation.setDescription(request.getDescription());
@@ -50,16 +53,16 @@ public class FormationService {
         formation.setDateFin(request.getDateFin());
         formation.setStatut(request.getStatut());
 
-        return formationRepository.save(formation);
+        return mapToResponse(formationRepository.save(formation));
     }
 
     public void delete(Long id) {
-        Formation formation = findById(id);
+        Formation formation = getEntityById(id);
         formationRepository.delete(formation);
     }
 
-    public Formation assignCollaborateur(Long formationId, Long collaborateurId) {
-        Formation formation = findById(formationId);
+    public FormationResponse assignCollaborateur(Long formationId, Long collaborateurId) {
+        Formation formation = getEntityById(formationId);
 
         Collaborateur collaborateur = collaborateurRepository.findById(collaborateurId)
                 .orElseThrow(() -> new ResourceNotFoundException("Collaborateur introuvable avec l'id : " + collaborateurId));
@@ -69,7 +72,26 @@ public class FormationService {
             collaborateurRepository.save(collaborateur);
         }
 
-        return formationRepository.findById(formationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Formation introuvable avec l'id : " + formationId));
+        return mapToResponse(getEntityById(formationId));
+    }
+
+    public Formation getEntityById(Long id) {
+        return formationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Formation introuvable avec l'id : " + id));
+    }
+
+    private FormationResponse mapToResponse(Formation formation) {
+        return FormationResponse.builder()
+                .id(formation.getId())
+                .titre(formation.getTitre())
+                .description(formation.getDescription())
+                .formateur(formation.getFormateur())
+                .dateDebut(formation.getDateDebut())
+                .dateFin(formation.getDateFin())
+                .statut(formation.getStatut())
+                .nombreCollaborateurs(
+                        formation.getCollaborateurs() != null ? formation.getCollaborateurs().size() : 0
+                )
+                .build();
     }
 }

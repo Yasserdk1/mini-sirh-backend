@@ -1,6 +1,7 @@
 package com.example.mini_sirh.service;
 
 import com.example.mini_sirh.dto.CongeRequest;
+import com.example.mini_sirh.dto.CongeResponse;
 import com.example.mini_sirh.entity.Collaborateur;
 import com.example.mini_sirh.entity.Conge;
 import com.example.mini_sirh.entity.enums.StatutConge;
@@ -19,7 +20,7 @@ public class CongeService {
     private final CongeRepository congeRepository;
     private final CollaborateurRepository collaborateurRepository;
 
-    public Conge create(CongeRequest request) {
+    public CongeResponse create(CongeRequest request) {
         Collaborateur collaborateur = collaborateurRepository.findById(request.getCollaborateurId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Collaborateur introuvable avec l'id : " + request.getCollaborateurId()
@@ -33,20 +34,22 @@ public class CongeService {
                 .collaborateur(collaborateur)
                 .build();
 
-        return congeRepository.save(conge);
+        return mapToResponse(congeRepository.save(conge));
     }
 
-    public List<Conge> findAll() {
-        return congeRepository.findAll();
+    public List<CongeResponse> findAll() {
+        return congeRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
-    public Conge findById(Long id) {
-        return congeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Congé introuvable avec l'id : " + id));
+    public CongeResponse findById(Long id) {
+        return mapToResponse(getEntityById(id));
     }
 
-    public Conge update(Long id, CongeRequest request) {
-        Conge conge = findById(id);
+    public CongeResponse update(Long id, CongeRequest request) {
+        Conge conge = getEntityById(id);
 
         Collaborateur collaborateur = collaborateurRepository.findById(request.getCollaborateurId())
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -58,23 +61,42 @@ public class CongeService {
         conge.setMotif(request.getMotif());
         conge.setCollaborateur(collaborateur);
 
-        return congeRepository.save(conge);
+        return mapToResponse(congeRepository.save(conge));
     }
 
-    public Conge accepter(Long id) {
-        Conge conge = findById(id);
+    public CongeResponse accepter(Long id) {
+        Conge conge = getEntityById(id);
         conge.setStatut(StatutConge.ACCEPTE);
-        return congeRepository.save(conge);
+        return mapToResponse(congeRepository.save(conge));
     }
 
-    public Conge refuser(Long id) {
-        Conge conge = findById(id);
+    public CongeResponse refuser(Long id) {
+        Conge conge = getEntityById(id);
         conge.setStatut(StatutConge.REFUSE);
-        return congeRepository.save(conge);
+        return mapToResponse(congeRepository.save(conge));
     }
 
     public void delete(Long id) {
-        Conge conge = findById(id);
+        Conge conge = getEntityById(id);
         congeRepository.delete(conge);
+    }
+
+    public Conge getEntityById(Long id) {
+        return congeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Congé introuvable avec l'id : " + id));
+    }
+
+    private CongeResponse mapToResponse(Conge conge) {
+        Collaborateur collaborateur = conge.getCollaborateur();
+
+        return CongeResponse.builder()
+                .id(conge.getId())
+                .dateDebut(conge.getDateDebut())
+                .dateFin(conge.getDateFin())
+                .motif(conge.getMotif())
+                .statut(conge.getStatut())
+                .collaborateurId(collaborateur.getId())
+                .collaborateurNomComplet(collaborateur.getNom() + " " + collaborateur.getPrenom())
+                .build();
     }
 }

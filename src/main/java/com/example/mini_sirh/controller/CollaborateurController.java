@@ -1,7 +1,7 @@
 package com.example.mini_sirh.controller;
 
 import com.example.mini_sirh.dto.CollaborateurRequest;
-import com.example.mini_sirh.entity.Collaborateur;
+import com.example.mini_sirh.dto.CollaborateurResponse;
 import com.example.mini_sirh.service.CollaborateurService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,22 +17,22 @@ public class CollaborateurController {
     private final CollaborateurService collaborateurService;
 
     @PostMapping
-    public Collaborateur create(@Valid @RequestBody CollaborateurRequest request) {
+    public CollaborateurResponse create(@Valid @RequestBody CollaborateurRequest request) {
         return collaborateurService.create(request);
     }
 
     @GetMapping
-    public List<Collaborateur> findAll() {
+    public List<CollaborateurResponse> findAll() {
         return collaborateurService.findAll();
     }
 
     @GetMapping("/{id}")
-    public Collaborateur findById(@PathVariable Long id) {
+    public CollaborateurResponse findById(@PathVariable Long id) {
         return collaborateurService.findById(id);
     }
 
     @PutMapping("/{id}")
-    public Collaborateur update(@PathVariable Long id, @Valid @RequestBody CollaborateurRequest request) {
+    public CollaborateurResponse update(@PathVariable Long id, @Valid @RequestBody CollaborateurRequest request) {
         return collaborateurService.update(id, request);
     }
 

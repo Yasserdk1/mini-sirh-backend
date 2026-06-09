@@ -1,6 +1,7 @@
 package com.example.mini_sirh.entity;
 
 import com.example.mini_sirh.entity.enums.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,9 +18,11 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String username;
 
+    @JsonIgnore
+    @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -28,6 +31,6 @@ public class User {
     private Boolean active;
 
     @OneToOne
-    @JoinColumn(name = "collaborateur_id")
+    @JoinColumn(name = "collaborateur_id", unique = true)
     private Collaborateur collaborateur;
 }
