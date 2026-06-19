@@ -8,6 +8,7 @@ import lombok.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "collaborateurs")
@@ -62,4 +63,12 @@ public class Collaborateur {
             inverseJoinColumns = @JoinColumn(name = "formation_id")
     )
     private List<Formation> formations = new ArrayList<>();
+    @ManyToMany
+    @JsonIgnore
+    @JoinTable(
+            name = "collaborateur_projet",
+            joinColumns = @JoinColumn(name = "collaborateur_id"),
+            inverseJoinColumns = @JoinColumn(name = "projet_id")
+    )
+    private List<Projet> projets = new ArrayList<>();
 }
